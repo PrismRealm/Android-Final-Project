@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">My Weather</string>
+
+    <string name="data_detail_now">目前詳細資料</string>
+    <string name="data_detail">詳細資料</string>
+
+    <string name="txt_humidity">溼度</string>
+    <string name="txt_dew_point">露點</string>
+    <string name="txt_pressure">氣壓</string>
+    <string name="txt_UV_index">紫外線指數</string>
+    <string name="txt_AT_temp">體感溫度</string>
+    <string name="txt_avg_temp">平均溫度</string>
+    <string name="txt_CI_point">舒適度指數</string>
+    <string name="txt_visibility">能見度</string>
+    <string name="txt_rain_rate">降雨機率</string>
+    <string name="txt_wind_speed">風速(公尺/秒)</string>
+
+    <string name="about_weather">概略天氣敘述</string>
+
+    <string name="btn_ok">確定</string>
+
+    <string name="tab_today">今天</string>
+    <string name="tab_tomorrow">明天</string>
+    <string name="tab_ten_days">未來10天</string>
+
+    <string name="search_bar_hint">請輸入縣市名稱</string>
+
+    <string name="speech_prompt">請說出要查詢的縣市名稱</string>
+    <string name="speech_not_supported">很飽歉，您的裝置並不支援語音輸入。</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+</resources>
