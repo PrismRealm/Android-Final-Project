@@ -11,7 +11,6 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -224,7 +223,8 @@ public class TodayFragment extends Fragment {
             @SuppressLint("DefaultLocale")
             String dateString =
                     String.format("%1$tm月%1$td日 %2$s%1$tl%3$s%1$tM", rightNow, ampm, coma);
-            txvDate.setText(dateString);
+            if (txvDate != null)
+                txvDate.setText(dateString);
         }
     };
 }

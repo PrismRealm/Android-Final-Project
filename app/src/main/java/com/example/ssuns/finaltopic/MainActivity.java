@@ -47,6 +47,8 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
     protected TabLayout tblTabLayout;
     protected ViewPager vpViewPager;
 
+    private String lastSearch = "臺北市";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -102,9 +104,14 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
      * 初始化天氣資料
      */
     private void initWeatherData() {
-        sbSearchBar.setText("臺北市");
-        sbSearchBar.setPlaceHolder("臺北市");
-        updateDateAllDatas();
+        try {
+            sbSearchBar.setText("臺北市");
+            sbSearchBar.setPlaceHolder("臺北市");
+            updateDateAllDatas();
+        }
+        catch (Exception ex) {
+            Toast.makeText(this, "無網際網路連線，請檢查是否有連線至網路。", Toast.LENGTH_LONG).show();
+        }
     }
 
     /**
@@ -120,7 +127,7 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
      */
     @Override
     public void onSearchConfirmed(CharSequence text) {
-        sbSearchBar.setPlaceHolder(text);
+        lastSearch = text.toString();
         updateDateAllDatas();
         closeKeyboard();
     }
@@ -140,8 +147,11 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
     public void closeKeyboard() {
         View view = this.getCurrentFocus();
         if (view != null) {
-            InputMethodManager imm = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
-            imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            try {
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(view.getWindowToken(), 0);
+            }
+            catch (NullPointerException ignored) { }
         }
     }
 
@@ -149,11 +159,20 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
      * 更新所有資料：兩天天氣資料以及一週天氣資料。
      */
     public void updateDateAllDatas() {
-        String cityName = sbSearchBar.getText();
-        apiService.getTwoDaysWeatherData(cityName).enqueue(responseOfTwoDays);
-        apiService.getOneWeekWeatherData(cityName).enqueue(responseOfOneWeek);
-        //apiService.test(cityName).enqueue(responseOfTest);
-        Toast.makeText(this, "更新天氣資料...", Toast.LENGTH_SHORT).show();
+        String cityName = lastSearch;
+        cityName = cityName.replaceAll("\\s+","");
+        if (cityName.length() > 0) {
+            cityName = cityName.replaceAll("台", "臺");
+            try {
+                apiService.getTwoDaysWeatherData(cityName).enqueue(responseOfTwoDays);
+                apiService.getOneWeekWeatherData(cityName).enqueue(responseOfOneWeek);
+                sbSearchBar.setPlaceHolder(lastSearch);
+                Toast.makeText(this, "更新天氣資料...", Toast.LENGTH_SHORT).show();
+            }
+            catch (Exception ex) {
+                Toast.makeText(this, "無網際網路連線，請檢查是否有連線至網路。", Toast.LENGTH_LONG).show();
+            }
+        }
     }
 
     /**
@@ -187,7 +206,7 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
                     ArrayList<String> result = data
                             .getStringArrayListExtra(RecognizerIntent.EXTRA_RESULTS);
                     sbSearchBar.setText(result.get(0));
-                    sbSearchBar.setPlaceHolder(result.get(0));
+                    lastSearch = result.get(0);
                     updateDateAllDatas();
                 }
                 break;
@@ -218,6 +237,7 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
             if (jsonData.getSuccess()) {
                 fragTodayWeather.updateJsonData(jsonData);
                 fragTomorrowWeather.updateJsonData(jsonData);
+                sbSearchBar.setPlaceHolder(lastSearch);
             }
             else {
                 Toast.makeText(MainActivity.this,
@@ -233,6 +253,32 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
             Toast.makeText(MainActivity.this, "無法取得「未來兩天天氣資料」，請檢查您的網路狀態或詢問開發者。", Toast.LENGTH_SHORT).show();
             fragTodayWeather.stopRefreshing();
             fragTomorrowWeather.stopRefreshing();
+        }
+    };
+
+    /**
+     * 抓取「一週天氣」的資料後的處理。
+     */
+    Callback<OneWeekJson> responseOfOneWeek = new Callback<OneWeekJson>() {
+        @Override
+        public void onResponse(@NonNull Call<OneWeekJson> call, Response<OneWeekJson> response) {
+            OneWeekJson jsonData = response.body();
+            if (jsonData.getSuccess()) {
+                fragTenDayWeather.updateViewDataByJson(response.body());
+                sbSearchBar.setPlaceHolder(lastSearch);
+            }
+            else {
+                Toast.makeText(MainActivity.this,
+                        "找不到「" + sbSearchBar.getText() + "」的一週天氣資料。",
+                        Toast.LENGTH_SHORT).show();
+            }
+            fragTenDayWeather.stopRefreshing();
+        }
+
+        @Override
+        public void onFailure(@NonNull Call<OneWeekJson> call,@NonNull Throwable t) {
+            Toast.makeText(MainActivity.this, "無法取得「一週天氣資料」，請檢查您的網路狀態或詢問開發者。", Toast.LENGTH_SHORT).show();
+            fragTenDayWeather.stopRefreshing();
         }
     };
 
@@ -268,31 +314,6 @@ public class MainActivity extends AppCompatActivity implements MaterialSearchBar
             return R.drawable.cloudy_day;
         }
     }
-
-    /**
-     * 抓取「一週天氣」的資料後的處理。
-     */
-    Callback<OneWeekJson> responseOfOneWeek = new Callback<OneWeekJson>() {
-        @Override
-        public void onResponse(@NonNull Call<OneWeekJson> call, Response<OneWeekJson> response) {
-            OneWeekJson jsonData = response.body();
-            if (jsonData.getSuccess()) {
-                fragTenDayWeather.updateViewDataByJson(response.body());
-            }
-            else {
-                Toast.makeText(MainActivity.this,
-                        "找不到「" + sbSearchBar.getText() + "」的一週天氣資料。",
-                        Toast.LENGTH_SHORT).show();
-            }
-            fragTenDayWeather.stopRefreshing();
-        }
-
-        @Override
-        public void onFailure(@NonNull Call<OneWeekJson> call,@NonNull Throwable t) {
-            Toast.makeText(MainActivity.this, "無法取得「一週天氣資料」，請檢查您的網路狀態或詢問開發者。", Toast.LENGTH_SHORT).show();
-            fragTenDayWeather.stopRefreshing();
-        }
-    };
 
     /**
      * 處理TabLayout與ViewPager之間的關聯。

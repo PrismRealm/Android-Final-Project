@@ -38,7 +38,6 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, final int position) {
-        Log.d(TAG, "RecyclerViewAdapter.onBindViewHolder: " + String.valueOf(position));
         WeatherTagData data = dataList.get(position);
         holder.imgView.setImageResource(data.getImageSource());
         holder.txvTemperature.setText(data.getTemperature());
